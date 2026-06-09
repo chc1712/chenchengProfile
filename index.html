@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Superstore 美國市場營運分析 — 陳泓成</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #fafaf8; --card: #ffffff;
+  --green: #1a6e42; --green2: #135533;
+  --red: #b83232; --amber: #7a4608;
+  --text: #1a1a18; --text2: #5c5c58; --text3: #9e9d97;
+  --mono: 'IBM Plex Mono', monospace; --sans: 'Noto Sans TC', sans-serif;
+  --content: 760px;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--sans); background: var(--bg); color: var(--text); font-size: 16px; line-height: 1.75; -webkit-font-smoothing: antialiased; }
+
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 4rem; height: 60px;
+  background: rgba(250,250,248,0.95); backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+.nav-logo { font-family: var(--mono); font-size: 13px; color: var(--green); letter-spacing: 0.04em; }
+.nav-links { display: flex; gap: 2.5rem; }
+.nav-links a { font-family: var(--mono); font-size: 12px; color: var(--text3); text-decoration: none; letter-spacing: 0.04em; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+
+.hero {
+  min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+  padding: 120px 4rem 5rem;
+  background: linear-gradient(160deg, #fafaf8 0%, #f4f3f0 50%, #edecea 100%);
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -40%; right: -20%;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(26,110,66,0.03) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 12px; color: var(--green);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;
+}
+.hero-eyebrow::before { content: ''; display: block; width: 40px; height: 1px; background: var(--green); }
+h1 { font-size: clamp(3rem, 7vw, 6rem); font-weight: 700; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.5rem; max-width: 900px; }
+h1 span { color: var(--green); }
+.hero-desc { font-size: 18px; color: var(--text2); max-width: 580px; line-height: 1.85; margin-bottom: 3.5rem; }
+.hero-metrics { display: flex; border: 1px solid rgba(0,0,0,0.09); border-radius: 4px; overflow: hidden; max-width: 680px; margin-bottom: 3rem; }
+.hero-metric { flex: 1; padding: 1.25rem 1.75rem; border-right: 1px solid rgba(0,0,0,0.08); }
+.hero-metric:last-child { border-right: none; }
+.hm-val { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; margin-bottom: 6px; }
+.hm-label { font-family: var(--mono); font-size: 11px; color: var(--text3); line-height: 1.4; }
+.hero-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  background: var(--green); color: #fff; font-family: var(--mono); font-size: 13px;
+  font-weight: 500; letter-spacing: 0.04em; padding: 1rem 2.5rem; border-radius: 3px;
+  text-decoration: none; transition: background 0.2s; max-width: 680px; width: 100%;
+}
+.hero-cta:hover { background: var(--green2); }
+
+/* 單欄內容寬度限制 */
+section { padding: 7rem 4rem; border-top: 1px solid rgba(0,0,0,0.07); }
+.si { max-width: 1100px; margin: 0 auto; }
+.content { max-width: var(--content); }
+
+.sn { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 1rem; }
+h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 400; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 1.25rem; }
+h2 strong { color: var(--green); font-weight: 700; }
+h3 { font-size: 1.15rem; font-weight: 500; line-height: 1.4; margin-bottom: 0.75rem; }
+.lead { font-size: 17px; color: var(--text2); line-height: 1.85; margin-bottom: 3rem; max-width: var(--content); }
+.body-text { font-size: 16px; color: var(--text2); line-height: 1.85; margin-bottom: 1.5rem; max-width: var(--content); }
+
+/* BAN GRID */
+.ban-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap: 2px; background: rgba(0,0,0,0.07); border-radius: 8px; overflow: hidden; margin: 2.5rem 0; }
+.ban-card { background: var(--card); padding: 2rem 1.75rem; }
+.ban-number { font-size: 2.8rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; margin-bottom: 10px; }
+.ban-label { font-size: 14px; color: var(--text2); line-height: 1.5; }
+.ban-sub { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 6px; }
+
+/* CHART */
+.chart-wrap { position: relative; width: 100%; max-width: var(--content); margin: 2rem 0; }
+.chart-label { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.05em; margin-bottom: 10px; }
+
+/* TABLE */
+.tw { overflow-x: auto; margin: 2rem 0; max-width: var(--content); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text3); font-weight: 400; text-align: left; padding: 10px 16px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+td { padding: 14px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); color: var(--text); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(0,0,0,0.015); }
+.num { font-family: var(--mono); font-size: 13px; text-align: right; }
+.hl td { background: rgba(0,0,0,0.025); }
+.r { color: var(--red); } .g { color: var(--green); } .m { color: var(--text3); }
+.ind { padding-left: 1.5rem; }
+
+/* CALLOUT */
+.callout { border-left: 3px solid rgba(0,0,0,0.15); padding: 1.25rem 1.75rem; margin: 2rem 0; background: rgba(0,0,0,0.025); border-radius: 0 8px 8px 0; font-size: 15px; color: var(--text2); line-height: 1.8; max-width: var(--content); }
+.callout strong { color: var(--text); }
+.callout.warn { border-left-color: var(--amber); background: rgba(122,70,8,0.05); }
+.callout.danger { border-left-color: var(--red); background: rgba(184,50,50,0.05); }
+.callout.success { border-left-color: var(--green); background: rgba(26,110,66,0.05); }
+
+/* CONCLUSION */
+.conclusion { margin-top: 2.5rem; padding: 1.5rem 1.75rem; background: rgba(0,0,0,0.025); border-radius: 8px; border-left: 3px solid rgba(0,0,0,0.15); max-width: var(--content); }
+.conclusion-header { font-family: var(--mono); font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.75rem; display: block; }
+.conclusion p { font-size: 15px; color: var(--text2); line-height: 1.85; }
+.conclusion p strong { color: var(--text); font-weight: 500; }
+
+/* TAG */
+.tag { display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; padding: 5px 14px; border-radius: 3px; margin-bottom: 1.25rem; }
+.tag-red { background: rgba(184,50,50,0.08); color: var(--red); border: 1px solid rgba(184,50,50,0.22); }
+.tag-amber { background: rgba(122,70,8,0.07); color: var(--amber); border: 1px solid rgba(122,70,8,0.22); }
+.tag-blue { background: rgba(23,79,138,0.07); color: #174f8a; border: 1px solid rgba(23,79,138,0.22); }
+
+/* FINDING */
+.finding { padding: 3.5rem 0; border-bottom: 1px solid rgba(0,0,0,0.07); }
+.finding:last-child { border-bottom: none; }
+
+/* BAR CHART */
+.bar-inline { margin: 2rem 0; max-width: var(--content); }
+.bar-row { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+.brl { font-size: 13px; color: var(--text2); width: 140px; flex-shrink: 0; text-align: right; line-height: 1.4; }
+.brt { flex: 1; height: 32px; background: rgba(0,0,0,0.07); border-radius: 4px; overflow: hidden; }
+.brf { height: 100%; border-radius: 4px; }
+.brv { font-family: var(--mono); font-size: 13px; width: 90px; flex-shrink: 0; font-weight: 500; }
+
+/* INFO BOX */
+.info-box { background: var(--card); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.75rem 2rem; margin: 2rem 0; max-width: var(--content); }
+.info-box.hl { border-color: rgba(26,110,66,0.22); }
+
+/* KPI STRIP inside info-box */
+.kpi-strip { display: flex; gap: 2px; background: rgba(0,0,0,0.07); border-radius: 6px; overflow: hidden; margin: 1rem 0 0; }
+.kpi-cell { flex: 1; background: var(--bg); padding: 1.25rem 1rem; }
+.kpi-val { font-size: 2rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1; margin-bottom: 6px; }
+.kpi-label { font-size: 12px; color: var(--text2); }
+
+/* RFM */
+.rfm-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap: 14px; margin: 2rem 0; }
+.rfm-card { background: var(--card); border: 1px solid rgba(0,0,0,0.08); border-radius: 8px; padding: 1.5rem; }
+.rfm-card.urgent { border-color: rgba(184,50,50,0.28); }
+.rfm-card.good { border-color: rgba(26,110,66,0.28); }
+.rfm-name { font-size: 15px; font-weight: 500; margin-bottom: 8px; }
+.rfm-stats { display: flex; gap: 1.5rem; margin: 10px 0; flex-wrap: wrap; }
+.rfm-sl { font-family: var(--mono); font-size: 10px; color: var(--text3); margin-bottom: 3px; }
+.rfm-sv { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+.rfm-action { font-size: 13px; color: var(--text2); margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.07); }
+
+/* HYPO */
+.hypo-row { display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center; padding: 1.25rem 0; border-bottom: 1px solid rgba(0,0,0,0.07); max-width: var(--content); }
+.hypo-row:last-child { border-bottom: none; }
+.hypo-claim strong { font-size: 15px; }
+.hypo-claim p { font-size: 13px; color: var(--text3); margin-top: 4px; }
+.result-badge { font-family: var(--mono); font-size: 12px; padding: 6px 16px; border-radius: 3px; white-space: nowrap; }
+.r-sig { background: rgba(26,110,66,0.08); color: var(--green); border: 1px solid rgba(26,110,66,0.22); }
+.r-ns { background: rgba(122,70,8,0.07); color: var(--amber); border: 1px solid rgba(122,70,8,0.22); }
+
+/* ACTION */
+.action-tier { font-family: var(--mono); font-size: 11px; color: var(--text3); letter-spacing: 0.07em; padding-bottom: 8px; border-bottom: 1px solid rgba(0,0,0,0.08); margin: 2.5rem 0 0; }
+.action-item { display: grid; grid-template-columns: 52px 1fr auto; gap: 1.25rem; align-items: start; padding: 1.25rem 0; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.action-item:last-child { border-bottom: none; }
+.ap { font-family: var(--mono); font-size: 11px; padding: 5px 10px; border-radius: 3px; text-align: center; }
+.ap0 { background: rgba(184,50,50,0.08); color: var(--red); border: 1px solid rgba(184,50,50,0.22); }
+.ap1 { background: rgba(122,70,8,0.07); color: var(--amber); border: 1px solid rgba(122,70,8,0.22); }
+.ap2 { background: rgba(23,79,138,0.07); color: #174f8a; border: 1px solid rgba(23,79,138,0.22); }
+.action-body h3 { font-size: 15px; margin-bottom: 4px; }
+.action-body p { font-size: 14px; color: var(--text2); }
+.action-roi { font-family: var(--mono); font-size: 14px; color: var(--green); font-weight: 500; text-align: right; white-space: nowrap; }
+
+/* INVESTOR */
+.inv-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin: 2rem 0; }
+.inv-card { border-radius: 8px; padding: 1.75rem; border: 1px solid; }
+.inv-card.scale { background: rgba(26,110,66,0.05); border-color: rgba(26,110,66,0.2); }
+.inv-card.cut { background: rgba(184,50,50,0.05); border-color: rgba(184,50,50,0.2); }
+.inv-card.watch { background: rgba(122,70,8,0.05); border-color: rgba(122,70,8,0.2); }
+.inv-title { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+.inv-items { font-size: 14px; color: var(--text2); line-height: 2; }
+
+/* NOT SCOPE */
+.ns-item { display: flex; align-items: flex-start; gap: 14px; padding: 8px 0; font-size: 14px; color: var(--text2); max-width: var(--content); }
+.ns-x { color: var(--red); font-family: var(--mono); font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+
+/* REFLECTION */
+.reflection-item { display: grid; grid-template-columns: 48px 1fr; gap: 1.75rem; align-items: start; padding: 2.25rem 0; border-bottom: 1px solid rgba(0,0,0,0.07); max-width: var(--content); }
+.reflection-item:last-child { border-bottom: none; }
+.rn { font-family: var(--mono); font-size: 11px; color: var(--text3); padding-top: 4px; }
+.rt { font-size: 16px; line-height: 1.85; color: var(--text2); }
+.rt strong { color: var(--text); font-weight: 500; }
+
+.div { height: 1px; background: rgba(0,0,0,0.07); margin: 3rem 0; max-width: var(--content); }
+
+footer { padding: 4rem; text-align: center; border-top: 1px solid rgba(0,0,0,0.07); }
+.fi { font-family: var(--mono); font-size: 12px; color: var(--text3); line-height: 2.2; }
+
+@media (max-width: 700px) {
+  nav { padding: 0 1.5rem; } .nav-links { display: none; }
+  section { padding: 5rem 1.5rem; } .hero { padding: 100px 1.5rem 4rem; }
+  h1 { font-size: 2.6rem; }
+  .hero-metrics { flex-direction: column; }
+  .hero-metric { border-right: none; border-bottom: 1px solid rgba(0,0,0,0.08); }
+  .hero-metric:last-child { border-bottom: none; }
+  .inv-grid { grid-template-columns: 1fr; }
+  .action-item { grid-template-columns: 52px 1fr; } .action-roi { grid-column: 2; }
+  .rfm-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Superstore Analytics</div>
+  <div class="nav-links">
+    <a href="#s01">現況</a><a href="#s02">歸因</a><a href="#s03">追蹤</a>
+    <a href="#s04">客戶</a><a href="#s05">行動</a><a href="#s06">反思</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div style="max-width:1100px; margin:0 auto; width:100%;">
+    <p class="hero-eyebrow">Business Analytics Portfolio · 2023–2026 US Market</p>
+    <h1>越賣越多，<br>但利潤率<span>在下滑</span></h1>
+    <p class="hero-desc">這是一份針對美國辦公用品零售商的完整商業診斷。我用四年、將近一萬筆交易數據，找出利潤率下滑的真正原因——然後告訴你下週一該做什麼。</p>
+    <div class="hero-metrics">
+      <div class="hero-metric"><div class="hm-val">$2.30M</div><div class="hm-label">4年累計銷售額</div></div>
+      <div class="hero-metric"><div class="hm-val">$286K</div><div class="hm-label">總利潤 · 12.47%</div></div>
+      <div class="hero-metric"><div class="hm-val" style="color:var(--red)">−0.69pp</div><div class="hm-label">2026年利潤率回落</div></div>
+      <div class="hero-metric"><div class="hm-val">793</div><div class="hm-label">客戶 · 9,994筆訂單</div></div>
+    </div>
+    <a class="hero-cta" href="#s01">↓ 看我怎麼找到答案</a>
+  </div>
+</section>
+
+<!-- 01 現況 -->
+<section id="s01">
+<div class="si">
+  <span class="sn">01 · 現況快照</span>
+  <h2>生意越做越大，<br><strong>但有一條線開始走歪</strong></h2>
+  <p class="lead">2026 年，這家公司的銷售額創下四年新高——$733K，比 2023 年成長了 51%。聽起來很好。但我同時注意到一件事：利潤率從 2025 年的高點 13.4% 悄悄滑落到 12.7%。最反直覺的是，整體折扣率四年幾乎沒動（15.5–15.8%）。問題不是折扣越打越兇，而是某個地方結構性出了問題。</p>
+
+  <div class="ban-grid">
+    <div class="ban-card"><div class="ban-number">+51%</div><div class="ban-label">四年營收成長</div><div class="ban-sub">$484K → $733K</div></div>
+    <div class="ban-card"><div class="ban-number" style="color:var(--red)">12.7%</div><div class="ban-label">2026 利潤率</div><div class="ban-sub">↓ 高點是 2025 年的 13.4%</div></div>
+    <div class="ban-card"><div class="ban-number">20.8%</div><div class="ban-label">2026 虧損訂單佔比</div><div class="ban-sub">四年始終沒有低於 20%</div></div>
+    <div class="ban-card"><div class="ban-number" style="color:var(--red)">$135K</div><div class="ban-label">折扣造成的損失</div><div class="ban-sub">折扣 >20%，四年加總</div></div>
+  </div>
+
+  <div class="chart-label">年度營收（柱）vs 利潤率（線）· 2023–2026</div>
+  <div class="chart-wrap" style="height:300px;">
+    <canvas id="trendChart" role="img" aria-label="年度營收與利潤率趨勢">2023：$484K，10.2%。2024：$471K，13.1%。2025：$609K，13.4%。2026：$733K，12.7%。</canvas>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>年度</th><th class="num">營收</th><th class="num">利潤</th><th class="num">利潤率</th><th class="num">訂單數</th><th class="num">虧損訂單%</th><th class="num">平均折扣</th></tr></thead>
+      <tbody>
+        <tr><td>2023</td><td class="num">$484,247</td><td class="num">$49,544</td><td class="num">10.2%</td><td class="num">969</td><td class="num">21.2%</td><td class="num">15.8%</td></tr>
+        <tr><td>2024</td><td class="num">$470,532</td><td class="num">$61,618</td><td class="num">13.1%</td><td class="num">1,038</td><td class="num">20.9%</td><td class="num">15.6%</td></tr>
+        <tr><td>2025</td><td class="num">$609,206</td><td class="num">$81,795</td><td class="num">13.4%</td><td class="num">1,315</td><td class="num">18.9%</td><td class="num">15.5%</td></tr>
+        <tr class="hl"><td><strong>2026</strong></td><td class="num">$733,215</td><td class="num">$93,439</td><td class="num r"><strong>12.7%</strong></td><td class="num">1,687</td><td class="num r"><strong>20.8%</strong></td><td class="num">15.6%</td></tr>
+        <tr><td class="m">四年合計</td><td class="num m">$2,297,201</td><td class="num m">$286,397</td><td class="num m">12.47%</td><td class="num m">5,009</td><td class="num m">—</td><td class="num m">15.6%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout">資料說明：原始資料共 10,194 筆，我排除了 200 筆加拿大訂單（2.0%），只分析美國市場。加拿大的利潤率是 20.1%，遠高於美國的 12.47%，是個值得單獨研究的對照組。</div>
+
+  <div class="conclusion">
+    <span class="conclusion-header">我的判斷</span>
+    <p>Technology 用 36% 的銷售額撐起了 50.8% 的利潤（利潤率 17.4%）；Furniture 佔了 32% 的銷售規模，卻只貢獻 6.4% 的利潤（利潤率 2.5%）。West 的利潤率是 Central 的 1.9 倍，這個差距在統計上完全顯著（ANOVA p&lt;0.001）。<strong>品類和地區的雙重失衡是這份報告最核心的結構問題</strong>——Furniture 是典型的資源錯配，規模大、利潤薄；立即確認 Central 的折扣授權機制，是目前邊際回報最高的單一動作。</p>
+  </div>
+</div>
+</section>
+
+<!-- 02 歸因 -->
+<section id="s02">
+<div class="si">
+  <span class="sn">02 · 歸因拆解</span>
+  <h2>先給答案：<strong>折扣不是兇手</strong></h2>
+  <p class="lead">在深入追蹤各個症狀之前，我想先直接回答最核心的問題——2026 年利潤率為什麼掉了？我用 Mix Effect + Rate Effect 分解法把這 −0.68pp 拆開來看，結果跟直覺完全不同。</p>
+
+  <div class="chart-label">利潤率歸因瀑布圖 · 2025 → 2026</div>
+  <div class="chart-wrap" style="height:320px;">
+    <canvas id="waterfallChart" role="img" aria-label="歸因瀑布圖">起點13.43%，Mix+1.17pp，Rate-1.86pp，終點12.74%。</canvas>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>歸因因素</th><th class="num">影響幅度</th><th>說明</th></tr></thead>
+      <tbody>
+        <tr><td>品類組合效果（Mix）</td><td class="num g">+1.17pp</td><td style="font-size:13px;color:var(--text2)">Copiers 賣更多了，拉抬整體</td></tr>
+        <tr><td>品項利潤率惡化（Rate）</td><td class="num r">−1.86pp</td><td style="font-size:13px;color:var(--text2)">三個品項本身賺不到錢了</td></tr>
+        <tr class="hl"><td><strong>淨結果</strong></td><td class="num r"><strong>−0.68pp</strong></td><td style="font-size:13px;">13.43% → 12.74%</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout danger">折扣率 2025→2026 只上升了 <strong>+0.17pp</strong>，幾乎沒動。<strong>所以不是折扣打多了——問題出在品項本身賺不到錢。</strong></div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>品項</th><th class="num">2025</th><th class="num">2026</th><th class="num">變化</th><th class="num">拖累幅度</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Machines</strong></td><td class="num">+5.2%</td><td class="num r">−6.6%</td><td class="num r">−11.8pp</td><td class="num r">−0.87pp</td></tr>
+        <tr><td><strong>Binders</strong></td><td class="num">+20.6%</td><td class="num r">+10.5%</td><td class="num r">−10.1pp</td><td class="num r">−0.63pp</td></tr>
+        <tr><td><strong>Tables</strong></td><td class="num">−4.9%</td><td class="num r">−13.4%</td><td class="num r">−8.5pp</td><td class="num r">−0.63pp</td></tr>
+        <tr><td style="color:var(--green)">Copiers（正向）</td><td class="num">—</td><td class="num g">—</td><td class="num g">佔比上升</td><td class="num g">+1.17pp</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="conclusion">
+    <span class="conclusion-header">我的判斷</span>
+    <p>2026 年利潤率回落（−0.68pp）的主因是<strong>品項本身賺不到錢了</strong>（Rate Effect −1.86pp），不是折扣打多了（+0.17pp）。有意思的是，Machines 和 Tables 的折扣率在 2026 年反而下降了，但利潤率還是崩跌——這指向成本端的問題。需要請採購或財務確認這兩個品項的 2026 年進貨成本是否上漲，這是後續所有行動的前提假設。</p>
+  </div>
+</div>
+</section>
+
+<!-- 03 追蹤 -->
+<section id="s03">
+<div class="si">
+  <span class="sn">03 · 問題追蹤</span>
+  <h2>順著線索往下挖，<strong>挖到三層</strong></h2>
+  <p class="lead">知道根本原因之後，我繼續追三個問題：折扣的臨界點在哪？哪些品項真的在虧錢？地區差距背後是什麼？每一層的答案，都讓下一個問題變得更清晰。</p>
+
+  <!-- 線索一 -->
+  <div class="finding">
+    <span class="tag tag-red">線索一 · 折扣結構</span>
+    <h3>20% 是一條清楚的界線——過了就開始虧錢</h3>
+    <p class="body-text">我把所有訂單按折扣率分成五個區間，發現不是越打折越賺越少的線性關係，而是越過 20% 之後，利潤直接從正數跳成負數。這是一條硬邊界。</p>
+
+    <div class="bar-inline">
+      <div class="bar-row"><div class="brl">0%–10%<br><span style="font-family:var(--mono);font-size:11px;">n=4,892</span></div><div class="brt"><div class="brf" style="width:100%;background:var(--green);"></div></div><div class="brv g">+$67.46</div></div>
+      <div class="bar-row"><div class="brl">10%–20%<br><span style="font-family:var(--mono);font-size:11px;">n=3,709</span></div><div class="brt"><div class="brf" style="width:37%;background:var(--green);opacity:0.5;"></div></div><div class="brv g">+$24.74</div></div>
+      <div class="bar-row"><div class="brl" style="color:var(--red)"><strong>20%–40% ← 在這裡</strong><br><span style="font-family:var(--mono);font-size:11px;">n=460</span></div><div class="brt" style="background:rgba(184,50,50,0.08);"><div class="brf" style="width:100%;background:var(--red);"></div></div><div class="brv r">−$77.86</div></div>
+      <div class="bar-row"><div class="brl">40%–60%<br><span style="font-family:var(--mono);font-size:11px;">n=215</span></div><div class="brt" style="background:rgba(184,50,50,0.08);"><div class="brf" style="width:100%;background:var(--red);"></div></div><div class="brv r">−$134.62</div></div>
+      <div class="bar-row"><div class="brl">60%–100%<br><span style="font-family:var(--mono);font-size:11px;">n=718</span></div><div class="brt" style="background:rgba(184,50,50,0.08);"><div class="brf" style="width:73%;background:var(--red);"></div></div><div class="brv r">−$98.35</div></div>
+    </div>
+
+    <div class="info-box">
+      <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:1rem;">四年加總</p>
+      <div class="kpi-strip">
+        <div class="kpi-cell"><div class="kpi-val" style="color:var(--red)">1,076</div><div class="kpi-label">筆折扣超過 20% 的訂單</div></div>
+        <div class="kpi-cell"><div class="kpi-val" style="color:var(--red)">$135K</div><div class="kpi-label">這些訂單造成的累計損失</div></div>
+      </div>
+    </div>
+
+    <div class="conclusion">
+      <span class="conclusion-header">我的判斷</span>
+      <p>超過 20% 折扣的 1,076 筆訂單，累計虧損 −$135K，佔總利潤的 47.3%；兩組利潤差距達 67.4pp，Cohen d=1.56（大效應量）。我也確認了折扣不是引流工具——購物籃分析顯示高折扣訂單的帶動效果幾乎為零（Lift 僅 1.10）。<strong>折扣控制是這份報告裡成本最低、回報最直接的止血點</strong>——只需要一道審批規則，不用花任何資本，就能守住現有的 $135K 利潤。</p>
+    </div>
+  </div>
+
+  <!-- 線索二 -->
+  <div class="finding">
+    <span class="tag tag-amber">線索二 · 品類損益</span>
+    <h3>Furniture 在拖累整體，但問題只出在兩個品項</h3>
+    <p class="body-text">看到 Furniture 的利潤率只有 2.49%，直覺會說「把這個品類縮掉」。但我往下看了子品類，發現完全不是這樣。</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>品類 / 子品類</th><th class="num">利潤率</th><th class="num">平均折扣</th><th class="num">四年利潤</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Technology</strong></td><td class="num g">17.40%</td><td class="num">—</td><td class="num g">—</td></tr>
+          <tr><td><strong>Office Supplies</strong></td><td class="num g">17.04%</td><td class="num">—</td><td class="num g">—</td></tr>
+          <tr><td><strong>Furniture</strong></td><td class="num r">2.49%</td><td class="num">—</td><td class="num r">—</td></tr>
+          <tr><td class="ind">↳ Tables</td><td class="num r">−8.56%</td><td class="num r">26.5%</td><td class="num r">−$17,726</td></tr>
+          <tr><td class="ind">↳ Bookcases</td><td class="num r">−3.02%</td><td class="num r">23.3%</td><td class="num r">−$3,473</td></tr>
+          <tr><td class="ind">↳ Chairs</td><td class="num g">8.11%</td><td class="num">11.8%</td><td class="num g">+$26,590</td></tr>
+          <tr><td class="ind">↳ Furnishings</td><td class="num g">14.30%</td><td class="num">8.1%</td><td class="num g">+$13,060</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout danger">Tables 連續虧損四年。2026 年的虧損（−$8,141）是 2025 年（−$2,951）的 <strong>2.75 倍</strong>，還在加速惡化。</div>
+    <div class="callout warn">所以不是「砍掉 Furniture」——Chairs 和 Furnishings 都有正利潤。真正需要處理的是 Tables 和 Bookcases 這兩個品項。在 SKU 審查完成前，不應做任何大規模品類決策。</div>
+
+    <div class="conclusion">
+      <span class="conclusion-header">我的判斷</span>
+      <p>Tables（−8.6%）和 Bookcases（−3.0%）是拖累整體的根源，合計四年虧損 −$21K，而且是典型的資源消耗型業務——佔用銷售人員時間和倉儲空間，卻持續虧錢。Machines 在 2026 年跌入虧損，需要立刻調出訂單明細確認原因。<strong>Copiers 是整份報告裡唯一年比年和長期趨勢都雙綠燈的品項</strong>，是最確定值得擴大資源的地方。本季行動：對 Tables / Bookcases 設定折扣上限 15%，停止主動推廣，釋放出來的資源往 Copiers 和 Paper 移。</p>
+    </div>
+  </div>
+
+  <!-- 線索三 -->
+  <div class="finding">
+    <span class="tag tag-blue">線索三 · 地區根因</span>
+    <h3>Central 是異常值——折扣最高、利潤最低，而且問題集中在兩個州</h3>
+    <p class="body-text">West 用最低的折扣率（10.93%）達到最高的利潤率（14.94%），是標竿。Central 完全相反——24.04% 的折扣率、7.92% 的利潤率。我繼續往下追，發現問題遠比「地區折扣太高」更精確。</p>
+
+    <div class="chart-label">四大區域：利潤率（柱）vs 平均折扣率（線）</div>
+    <div class="chart-wrap" style="height:300px;">
+      <canvas id="regionChart" role="img" aria-label="四大區域利潤率與折扣率">West：14.94%，10.93%。East：13.48%，14.54%。South：11.93%，14.73%。Central：7.92%，24.04%。</canvas>
+    </div>
+
+    <div class="info-box">
+      <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:1rem;">我先測試了一個直覺假設：Central 是在「用折扣換大單」嗎？</p>
+      <div class="tw" style="margin:0;">
+        <table>
+          <thead><tr><th>訂單規模</th><th class="num">平均折扣</th><th class="num">每單利潤</th><th class="num">訂單數</th></tr></thead>
+          <tbody>
+            <tr><td>大單（≥$500）</td><td class="num">18.18%</td><td class="num g">+$150</td><td class="num">283</td></tr>
+            <tr><td>小單（<$500）</td><td class="num r">26.63%</td><td class="num r">−$3</td><td class="num">892</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="font-size:14px;color:var(--text2);margin-top:1rem;"><strong>假設被否定了。</strong>高折扣集中在小額訂單，不是在換大客戶。根因有三種可能：促銷授權 / 獲客策略偏差 / 授權監控缺失——需要訪談才能確認，三種情境的解法完全不同。</p>
+    </div>
+
+    <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin:2rem 0 10px;letter-spacing:0.06em;">我不建議做的事</p>
+    <div class="ns-item"><span class="ns-x">✕</span><span>砍掉整個 Furniture 品類——Chairs / Furnishings 都還在賺錢</span></div>
+    <div class="ns-item"><span class="ns-x">✕</span><span>全面禁止折扣——0–15% 的折扣完全沒問題</span></div>
+    <div class="ns-item"><span class="ns-x">✕</span><span>換掉業務團隊——業務在最大化被考核的指標，這是制度設計問題</span></div>
+
+    <div class="conclusion">
+      <span class="conclusion-header">我的判斷</span>
+      <p>Central 的折扣問題 100% 集中在 Illinois 和 Texas，其他 8 個州折扣率為零且利潤健康。最關鍵的線索是折扣分佈的雙峰異常——不是 0% 就是 >40%，中間幾乎沒有——<strong>這不像個人業務員的行為，更像是固定的促銷碼或通路協議在背後控制</strong>。如果根因是促銷碼管理問題，修正成本幾乎為零，但在確認前，應先暫停 IL/TX 的深度折扣授權。</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- 04 客戶 -->
+<section id="s04">
+<div class="si">
+  <span class="sn">04 · 客戶分析</span>
+  <h2>換個角度看：<strong>客戶端藏著另一條戰線</strong></h2>
+  <p class="lead">前面三個線索都在看「賣什麼有問題」。這一節我換到客戶端——看「賣給誰有問題」。結果發現兩件事：將近四分之一的客戶在系統性地虧錢，同時，最值錢的那批客戶正在悄悄流失。</p>
+
+  <h3 style="margin-bottom:0.5rem;">RFM 分群 · 793 位客戶，五分位數評分</h3>
+  <p style="font-size:14px;color:var(--text3);margin-bottom:1.75rem;max-width:var(--content);">R = 最後一次購買距今多遠 / F = 總共買了幾次 / M = 累計貢獻了多少利潤。切點由數據分佈決定，不是業界固定標準。</p>
+  <div class="rfm-grid">
+    <div class="rfm-card good"><div class="rfm-name">Champions（頂層客戶）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">92</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$88,616</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">20.1%</div></div></div><div class="rfm-action">守住這批人，不惜一切</div></div>
+    <div class="rfm-card good"><div class="rfm-name">Loyal（忠誠客戶）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">144</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$87,729</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">18.3%</div></div></div><div class="rfm-action">定期維繫，不要讓他們覺得被忽略</div></div>
+    <div class="rfm-card urgent"><div class="rfm-name">At Risk（快要流失了）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">100</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$84,422</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">20.0%</div></div></div><div class="rfm-action" style="color:var(--red)">本月內啟動喚回，最優先</div></div>
+    <div class="rfm-card"><div class="rfm-name">Lost（已經流失）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">171</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv">+$31,939</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv m">歷史值</div></div></div><div class="rfm-action">選擇性喚回，別全押</div></div>
+    <div class="rfm-card urgent"><div class="rfm-name">Needs Attention（在虧錢）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">181</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv r">−$45,486</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv r">−3.1%</div></div></div><div class="rfm-action" style="color:var(--red)">立即停止折扣，不要再投入資源</div></div>
+  </div>
+
+  <div class="conclusion">
+    <span class="conclusion-header">我的判斷</span>
+    <p>Champions + Loyal 合計 236 人（佔客戶數 29.7%），貢獻了 $176K 利潤——每流失一個 Champion，損失的成本遠高於維繫他的成本。At Risk 群的 51 人擁有 $22K 歷史利潤且利潤率達 17.3%，是<strong>本月最值得投入喚回資源的群體</strong>。Needs Attention 群的 181 人造成 −$45K 損失，首要動作是立刻停止對他們的主動折扣，觀察 2 個月自然消費行為後再決定下一步。</p>
+  </div>
+
+  <div class="div"></div>
+
+  <h3 style="margin-bottom:0.5rem;">同期群留存分析</h3>
+  <p class="body-text">我以首購月份為 Cohort 分組，追蹤每一批客戶的 M1–M24 回購比例，想知道：留住的客戶，和沒留住的，後來差在哪裡？</p>
+
+  <div class="ban-grid" style="grid-template-columns:repeat(3,1fr);">
+    <div class="ban-card"><div class="ban-number r">12.2%</div><div class="ban-label">M1 留存率</div><div class="ban-sub">100 位新客，只有 12 人第二個月回來</div></div>
+    <div class="ban-card"><div class="ban-number">$567</div><div class="ban-label">留存者後續人均利潤</div><div class="ban-sub">vs 未留存者 $274</div></div>
+    <div class="ban-card"><div class="ban-number">2.07×</div><div class="ban-label">利潤差距倍數</div><div class="ban-sub">但統計上還不夠確定</div></div>
+  </div>
+
+  <div class="callout warn">這個 2.07 倍的差距看起來很驚人，但我跑了假設檢定（p=0.079，n=79），<strong>尚未達到統計顯著</strong>。中位數兩組幾乎一樣（$182 vs $179），差距很可能來自幾個極端高利潤客戶。所以我在這裡保守陳述：方向性參考，不能直接拿來做決策依據。</div>
+
+  <div class="conclusion">
+    <span class="conclusion-header">我的判斷</span>
+    <p>M1 留存率只有 10–12%，88% 的新客第一個月就消失了。數據方向上顯示留存者後續利潤較高（$567 vs $274），但這個差距在現有樣本規模下還沒有統計保證。我的建議是：在首購後 7–14 天主動聯繫新客（成本幾乎為零），用低成本方式試驗這個機制。若留存率從 11.3% 提升到 20%，以 2023 Cohort 為基準估計，可多貢獻約 $29K——但前提是留存差距真實存在，待數據累積後再確認。</p>
+  </div>
+
+  <div class="div"></div>
+
+  <h3 style="margin-bottom:0.5rem;">假設檢定</h3>
+  <p class="body-text">描述性統計可以告訴你「看起來有差異」，但無法告訴你這個差異是真實的還是隨機的。我對三組核心差距做了統計檢定。</p>
+
+  <div class="hypo-row"><div class="hypo-claim"><strong>折扣 >20% vs ≤20% 的利潤差距</strong><p>Mann-Whitney U · n₁=1,076，n₂=8,918</p></div><span class="result-badge r-sig">p &lt; 0.001 · 確認顯著</span></div>
+  <div class="hypo-row"><div class="hypo-claim"><strong>Central vs 其他區域的利潤率差距</strong><p>Welch t-test · Central n=1,175，其他 n=8,819</p></div><span class="result-badge r-sig">p &lt; 0.001 · 確認顯著</span></div>
+  <div class="hypo-row"><div class="hypo-claim"><strong>留存者 vs 未留存者的後續利潤差距</strong><p>Welch t-test · 留存 n=79，未留存 n=714</p></div><span class="result-badge r-ns">p = 0.079 · 尚未顯著</span></div>
+
+  <div class="conclusion">
+    <span class="conclusion-header">我的判斷</span>
+    <p>折扣差距（d=1.56，大效應量）和地區差距都達到統計顯著（p&lt;0.001），為後面的行動建議提供了明確的統計依據。留存差距（p=0.079）尚未達顯著，代表留存機制的改善應該先用低成本方式試驗，而不是馬上大規模投入。<strong>統計顯著性就是我用來決定「這件事值不值得現在動手」的依據。</strong></p>
+  </div>
+</div>
+</section>
+
+<!-- 05 行動 -->
+<section id="s05">
+<div class="si">
+  <span class="sn">05 · 行動方案</span>
+  <h2>診斷完了，<strong>接下來做什麼</strong></h2>
+  <p class="lead">我把行動分成三個優先層次，從最緊急、最容易執行的開始。但有一個前提：所有 P0 行動之前，需要先花 1–2 週和管理層、業務訪談，確認 Central 高折扣的根因情境。三種可能情境的解法完全不同，跳過這一步會做白工。</p>
+
+  <div class="info-box hl">
+    <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:0.75rem;">前置作業（第 1–2 週）· 不能省略</p>
+    <p style="font-size:16px;">訪談管理層 + 業務 + 客戶，確認 Central 高折扣的根因（促銷授權 / 獲客策略偏差 / 授權監控缺失），決定後續 P0 行動的方向。</p>
+  </div>
+
+  <div class="action-tier">P0 · 第 3 週 · 需要高層拍板</div>
+  <div class="action-item"><span class="ap ap0">P0</span><div class="action-body"><h3>折扣超過 40% 需要 VP 特批</h3><p>全公司適用。RICE 59,476 · 受影響虧損訂單 $26,434 × 70% 攔截率估算</p></div><div class="action-roi">+$18,504/yr</div></div>
+  <div class="action-item"><span class="ap ap0">P0</span><div class="action-body"><h3>凍結 Tables / Bookcases 的折扣授權</h3><p>RICE 39,868 · 折扣節省 $16,393 × 50% 轉為利潤改善</p></div><div class="action-roi">+$8,197/yr</div></div>
+  <div class="action-item"><span class="ap ap0">P0</span><div class="action-body"><h3>建立三層折扣審批制度</h3><p>0–15% 業務自主 / 15–20% 區域經理批准 / >20% VP 批准。填補現在的灰色地帶。</p></div><div class="action-roi">+$10,416/yr</div></div>
+
+  <div class="action-tier">P1 · 第 4–6 週 · 中階執行</div>
+  <div class="action-item"><span class="ap ap1">P1</span><div class="action-body"><h3>Central 區域業務健診</h3><p>釐清 IL/TX 高折扣城市的根因，決定是否收回自主定價權</p></div><div class="action-roi">+$5,748/yr</div></div>
+  <div class="action-item"><span class="ap ap1">P1</span><div class="action-body"><h3>Tables SKU 逐一審查，停售虧損品項</h3><p>成本審計 + 篩選下架。不是整個品類，是品項層級。</p></div><div class="action-roi">+$3,256/yr</div></div>
+  <div class="action-item"><span class="ap ap1">P1</span><div class="action-body"><h3>對 At Risk 前 51 人發起喚回</h3><p>歷史利潤 $22,300，平均利潤率 17.3%。折扣上限設 15%，距臨界點還有 4.9pp 緩衝。</p></div><div class="action-roi">預估 +$10K</div></div>
+
+  <div class="action-tier">P2 · 第 7–10 週 · 系統性改善</div>
+  <div class="action-item"><span class="ap ap2">P2</span><div class="action-body"><h3>報價工具加入即時利潤率顯示</h3><p>讓業務在報價的當下就看到自己在做虧本的單</p></div><div class="action-roi">+$11,575/yr</div></div>
+  <div class="action-item"><span class="ap ap2">P2</span><div class="action-body"><h3>銷售 KPI 加入毛利考核（目標 ≥30%）</h3><p>先在 Central 試點，確認有效後全國推廣。業務只優化被考核的指標——改考核就能改行為。</p></div><div class="action-roi">+$16,205/yr</div></div>
+
+  <div class="info-box hl" style="margin-top:3rem;">
+    <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:1.25rem;letter-spacing:0.05em;">90 天目標</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:1.5rem;">
+      <div>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:8px;">利潤健康</p>
+        <p style="font-size:15px;margin-bottom:6px;">全公司利潤率 12.7% → ≥14%</p>
+        <p style="font-size:15px;margin-bottom:6px;">虧損訂單佔比 21.5% → &lt;10%</p>
+        <p style="font-size:15px;">Tables 年虧損 $8,141 → &lt;$3,000</p>
+      </div>
+      <div>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:8px;">折扣治理</p>
+        <p style="font-size:15px;margin-bottom:6px;">Central 利潤率 5.1% → ≥9%</p>
+        <p style="font-size:15px;margin-bottom:6px;">折扣 >20% 訂單佔比 → &lt;10%</p>
+        <p style="font-size:15px;">KPI 含利潤指標 → Central 試點達 100%</p>
+      </div>
+    </div>
+    <div style="border-top:1px solid rgba(0,0,0,0.08);padding-top:1.25rem;">
+      <p style="font-family:var(--mono);font-size:15px;color:var(--green);font-weight:500;">保守年化估計：P0 +$37,117 · P1 +$9,004 · P2 +$27,780 = <strong>+$73,901</strong></p>
+      <p style="font-size:13px;color:var(--text3);margin-top:6px;">所有數字都可以從原始 9,994 筆交易資料直接追溯驗算</p>
+    </div>
+  </div>
+
+  <div class="div"></div>
+  <h3 style="margin-bottom:1.25rem;">如果我是投資人，資源要怎麼配？</h3>
+  <div class="inv-grid">
+    <div class="inv-card scale"><div class="inv-title" style="color:var(--green)">值得加碼</div><div class="inv-items">Copiers（唯一雙綠燈品項）<br>Technology 品類整體<br>West 的定價模式值得複製<br>At Risk 喚回（ROI 最確定）</div></div>
+    <div class="inv-card cut"><div class="inv-title" style="color:var(--red)">先止血再說</div><div class="inv-items">Tables（虧了四年還在加速）<br>Needs Attention 客群的折扣<br>Central IL/TX 未授權高折扣<br>Machines 2026 異常訂單</div></div>
+    <div class="inv-card watch"><div class="inv-title" style="color:var(--amber)">先觀察，不要急</div><div class="inv-items">Binders（折扣上升中，待查）<br>M1 留存率改善機制<br>South 2026 利潤率微幅下滑<br>Corporate Lost 喚回效益</div></div>
+  </div>
+</div>
+</section>
+
+<!-- 06 反思 -->
+<section id="s06">
+<div class="si">
+  <span class="sn">06 · 做完這份分析，我學到什麼</span>
+  <h2>三個讓我<strong>改變想法的時刻</strong></h2>
+  <div style="margin-top:2.5rem;">
+    <div class="reflection-item">
+      <div class="rn">01</div>
+      <div class="rt"><strong>直覺假設要拿去驗證，不能直接用。</strong>看到 Central 折扣最高、利潤最低，我第一個念頭是「業務在用折扣換大單」。這個假設聽起來很合理，但我還是把它跑了一遍——結果完全相反。Central 大單的折扣率反而更低（18.18% vs 26.63%），而且大單是獲利的（+$150/單）。高折扣是集中在小額訂單上。如果我跳過驗證直接建議「讓業務更精準地用折扣換大單」，就會完全走錯方向。</div>
+    </div>
+    <div class="reflection-item">
+      <div class="rn">02</div>
+      <div class="rt"><strong>拆解根本原因的順序，決定你得到什麼結論。</strong>2026 年利潤率掉了，最容易想到的原因是「折扣打多了」。但我先做了歸因分解，才發現折扣率幾乎沒動（+0.17pp）——真正的問題是 Machines、Binders、Tables 三個品項的利潤率在品項層級惡化。如果沒有這一步，我會開一張完全錯誤的處方。</div>
+    </div>
+    <div class="reflection-item">
+      <div class="rn">03</div>
+      <div class="rt"><strong>數字看起來很驚人，不代表它是真的。</strong>留存者的後續利潤是未留存者的 2.07 倍——這個數字放在 deck 裡很好看。但我跑了假設檢定（p=0.079，n=79），發現它還沒有統計保證。中位數兩組幾乎一樣（$182 vs $179），均值差距很可能只是來自幾個極端客戶。結論宜保守陳述——不是這個方向不值得追，而是它現在還不夠確定，應該先用低成本方式試驗，而不是大規模投入。</div>
+    </div>
+  </div>
+</div>
+</section>
+
+<footer>
+  <div class="fi">
+    Superstore US Market · FY2023–2026 · 9,994 筆交易<br>
+    Python · SQL · Tableau · Statistical Testing<br>
+    陳泓成 Portfolio
+  </div>
+</footer>
+
+<script>
+const C = { grid:'rgba(0,0,0,0.07)', text:'rgba(0,0,0,0.4)', green:'#1a6e42', red:'#b83232', amber:'#7a4608', bar:'rgba(0,0,0,0.08)' };
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 11; Chart.defaults.color = C.text;
+
+new Chart(document.getElementById('trendChart'), {
+  type:'bar', data:{ labels:['2023','2024','2025','2026'],
+    datasets:[
+      { data:[484247,470532,609206,733215], backgroundColor:C.bar, borderColor:'rgba(0,0,0,0.09)', borderWidth:0.5, yAxisID:'y', order:2 },
+      { data:[10.2,13.1,13.4,12.7], type:'line', borderColor:C.red, backgroundColor:'transparent', borderWidth:2, pointRadius:5, pointBackgroundColor:C.red, tension:0.3, yAxisID:'y1', order:1 }
+    ]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{ y:{grid:{color:C.grid},ticks:{callback:v=>'$'+(v/1000).toFixed(0)+'K'}}, y1:{position:'right',grid:{display:false},ticks:{callback:v=>v+'%'},min:8,max:16}, x:{grid:{display:false}} }}
+});
+
+new Chart(document.getElementById('waterfallChart'), {
+  type:'bar', data:{ labels:['2025 基準','Mix Effect','Rate Effect','2026 結果'],
+    datasets:[
+      { data:[0,13.43,14.60,0], backgroundColor:'transparent', borderColor:'transparent', stack:'stack' },
+      { data:[13.43,1.17,-1.86,12.74], backgroundColor:[C.bar,C.green,C.red,C.bar], borderColor:'transparent', stack:'stack' }
+    ]},
+  options:{ responsive:true, maintainAspectRatio:false,
+    plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>ctx.datasetIndex===0?null:(ctx.raw>0?'+':'')+ctx.raw.toFixed(2)+'pp'}}},
+    scales:{ y:{grid:{color:C.grid},ticks:{callback:v=>v.toFixed(1)+'%'},min:11,max:16}, x:{grid:{display:false},ticks:{autoSkip:false}} }}
+});
+
+new Chart(document.getElementById('regionChart'), {
+  type:'bar', data:{ labels:['West','East','South','Central'],
+    datasets:[
+      { data:[14.94,13.48,11.93,7.92], backgroundColor:[C.green,C.bar,C.bar,C.red], borderColor:'transparent', yAxisID:'y', order:2 },
+      { data:[10.93,14.54,14.73,24.04], type:'line', borderColor:C.amber, backgroundColor:'transparent', borderWidth:2, pointRadius:5, pointBackgroundColor:C.amber, borderDash:[5,3], tension:0.3, yAxisID:'y1', order:1 }
+    ]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{ y:{grid:{color:C.grid},ticks:{callback:v=>v+'%'}}, y1:{position:'right',grid:{display:false},ticks:{callback:v=>v+'%'}}, x:{grid:{display:false}} }}
+});
+</script>
+</body>
+</html>
