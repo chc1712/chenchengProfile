@@ -284,7 +284,7 @@ footer { padding: 4rem; text-align: center; border-top: 1px solid rgba(0,0,0,0.0
 <section id="s02">
 <div class="si">
   <span class="sn">02 · 歸因拆解</span>
-  <h2>折扣不是主因</h2>
+  <h2><strong>折扣不是主因</strong></h2>
   <p class="lead">在深入追蹤各個症狀之前，我想先直接回答最核心的問題——2026 年利潤率為什麼掉了？我用 Mix Effect + Rate Effect 分解法把這 −0.68pp 拆開來看，結果跟直覺完全不同。</p>
 
   <div class="chart-label">利潤率歸因瀑布圖 · 2025 → 2026</div>
@@ -435,13 +435,37 @@ footer { padding: 4rem; text-align: center; border-top: 1px solid rgba(0,0,0,0.0
   <p class="lead">前面三個線索都在看「賣什麼有問題」。這一節我換到客戶端——看「賣給誰有問題」。結果發現兩件事：將近四分之一的客戶在系統性地虧錢，同時，最值錢的那批客戶正在悄悄流失。</p>
 
   <h3 style="margin-bottom:0.5rem;">RFM 分群 · 793 位客戶，五分位數評分</h3>
-  <p style="font-size:14px;color:var(--text3);margin-bottom:1.75rem;max-width:var(--content);">R = 最後一次購買距今多遠 / F = 總共買了幾次 / M = 累計貢獻了多少利潤。切點由數據分佈決定，不是業界固定標準。</p>
+  <p style="font-size:14px;color:var(--text3);margin-bottom:1.75rem;max-width:var(--content);">R = 最後一次購買距今多遠 / F = 總共買了幾次 / M = 累計貢獻了多少利潤。評分採五分位數，切點由本資料集的分佈決定（相對標準，不是業界固定門檻）。</p>
+
+  <div class="tw" style="margin-bottom:2rem;">
+    <table>
+      <thead>
+        <tr><th>維度</th><th>分數 5（最佳）</th><th>分數 4</th><th>分數 3</th><th>分數 2</th><th>分數 1（最差）</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>R</strong> — 最後購買距今</td>
+          <td>0–26 天</td><td>27–53 天</td><td>54–103 天</td><td>104–224 天</td><td>225 天以上</td>
+        </tr>
+        <tr>
+          <td><strong>F</strong> — 購買次數</td>
+          <td>9–17 次</td><td>7–8 次</td><td>5–7 次</td><td>4–5 次</td><td>1–4 次</td>
+        </tr>
+        <tr>
+          <td><strong>M</strong> — 累計利潤</td>
+          <td>$684 以上</td><td>$318–683</td><td>$155–317</td><td>$2–154</td><td>負值至 $1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
   <div class="rfm-grid">
-    <div class="rfm-card good"><div class="rfm-name">Champions（頂層客戶）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">92</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$88,616</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">20.1%</div></div></div><div class="rfm-action">守住這批人，不惜一切</div></div>
-    <div class="rfm-card good"><div class="rfm-name">Loyal（忠誠客戶）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">144</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$87,729</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">18.3%</div></div></div><div class="rfm-action">定期維繫，不要讓他們覺得被忽略</div></div>
-    <div class="rfm-card urgent"><div class="rfm-name">At Risk（快要流失了）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">100</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$84,422</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">20.0%</div></div></div><div class="rfm-action" style="color:var(--red)">本月內啟動喚回，最優先</div></div>
-    <div class="rfm-card"><div class="rfm-name">Lost（已經流失）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">171</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv">+$31,939</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv m">歷史值</div></div></div><div class="rfm-action">選擇性喚回，別全押</div></div>
-    <div class="rfm-card urgent"><div class="rfm-name">Needs Attention（在虧錢）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">181</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv r">−$45,486</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv r">−3.1%</div></div></div><div class="rfm-action" style="color:var(--red)">立即停止折扣，不要再投入資源</div></div>
+    <div class="rfm-card good"><div class="rfm-name">Champions（頂層客戶）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">92 人（11.6%）</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$88,616</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">20.1%</div></div></div><div class="rfm-action">守住這批人，不惜一切</div></div>
+    <div class="rfm-card good"><div class="rfm-name">Loyal（忠誠客戶）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">144 人（18.2%）</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$87,729</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">18.3%</div></div></div><div class="rfm-action">定期維繫，不要讓他們覺得被忽略</div></div>
+    <div class="rfm-card urgent"><div class="rfm-name">At Risk（快要流失了）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">100 人（12.6%）</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$84,422</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">20.0%</div></div></div><div class="rfm-action" style="color:var(--red)">本月內啟動喚回，最優先</div></div>
+    <div class="rfm-card"><div class="rfm-name">New / Promising（新客）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">89 人（11.2%）</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$24,208</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">14.2%</div></div></div><div class="rfm-action">啟動首月培育，爭取第二次購買</div></div>
+    <div class="rfm-card"><div class="rfm-name">Big Spenders（高單低頻）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">16 人（2.0%）</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv g">+$14,969</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv">22.8%</div></div></div><div class="rfm-action">定期維繫，利潤率最高群體之一</div></div>
+    <div class="rfm-card"><div class="rfm-name">Lost（已經流失）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">171 人（21.6%）</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv">+$31,939</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv m">歷史值</div></div></div><div class="rfm-action">選擇性喚回，別全押</div></div>
+    <div class="rfm-card urgent"><div class="rfm-name">Needs Attention（在虧錢）</div><div class="rfm-stats"><div><div class="rfm-sl">人數</div><div class="rfm-sv">181 人（22.8%）</div></div><div><div class="rfm-sl">利潤</div><div class="rfm-sv r">−$45,486</div></div><div><div class="rfm-sl">利潤率</div><div class="rfm-sv r">−3.1%</div></div></div><div class="rfm-action" style="color:var(--red)">立即停止折扣，不要再投入資源</div></div>
   </div>
 
   <div class="conclusion">
@@ -488,7 +512,7 @@ footer { padding: 4rem; text-align: center; border-top: 1px solid rgba(0,0,0,0.0
 <div class="si">
   <span class="sn">05 · 行動方案</span>
   <h2>診斷完了，<strong>接下來做什麼</strong></h2>
-  <p class="lead">我把行動分成三個優先層次，從最緊急、最容易執行的開始。但有一個前提：所有 P0 行動之前，需要先花 1–2 週和管理層、業務訪談，確認 Central 高折扣的根因情境。三種可能情境的解法完全不同，跳過這一步會做白工。</p>
+  <p class="lead">前面四個章節回答了「哪裡出問題」——折扣臨界點、虧損品項、Central 地區異常、客戶結構失衡。這一節把這些診斷轉成具體行動，分三個優先層次。在所有 P0 行動開始前，需要先花 1–2 週訪談確認 Central 根因，三種情境的解法完全不同，跳過這一步會做白工。</p>
 
   <div class="info-box hl">
     <p style="font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:0.75rem;">前置作業（第 1–2 週）· 不能省略</p>
@@ -496,16 +520,19 @@ footer { padding: 4rem; text-align: center; border-top: 1px solid rgba(0,0,0,0.0
   </div>
 
   <div class="action-tier">P0 · 第 3 週 · 需要高層拍板</div>
+  <p style="font-size:14px;color:var(--text3);margin-bottom:0.5rem;max-width:var(--content);">根據折扣診斷（線索一）和地區根因（線索三）——折扣超過 20% 是虧損臨界點，Central IL/TX 的雙峰異常指向系統性授權缺失。</p>
   <div class="action-item"><span class="ap ap0">P0</span><div class="action-body"><h3>折扣超過 40% 需要 VP 特批</h3><p>全公司適用。RICE 59,476 · 受影響虧損訂單 $26,434 × 70% 攔截率估算</p></div><div class="action-roi">+$18,504/yr</div></div>
   <div class="action-item"><span class="ap ap0">P0</span><div class="action-body"><h3>凍結 Tables / Bookcases 的折扣授權</h3><p>RICE 39,868 · 折扣節省 $16,393 × 50% 轉為利潤改善</p></div><div class="action-roi">+$8,197/yr</div></div>
   <div class="action-item"><span class="ap ap0">P0</span><div class="action-body"><h3>建立三層折扣審批制度</h3><p>0–15% 業務自主 / 15–20% 區域經理批准 / >20% VP 批准。填補現在的灰色地帶。</p></div><div class="action-roi">+$10,416/yr</div></div>
 
   <div class="action-tier">P1 · 第 4–6 週 · 中階執行</div>
+  <p style="font-size:14px;color:var(--text3);margin-bottom:0.5rem;max-width:var(--content);">根據品類損益（線索二）和客戶分析（04 節）——Tables/Bookcases 連續虧損、Machines 2026 年跌入虧損；At Risk 群擁有高歷史利潤卻正在流失。</p>
   <div class="action-item"><span class="ap ap1">P1</span><div class="action-body"><h3>Central 區域業務健診</h3><p>釐清 IL/TX 高折扣城市的根因，決定是否收回自主定價權</p></div><div class="action-roi">+$5,748/yr</div></div>
   <div class="action-item"><span class="ap ap1">P1</span><div class="action-body"><h3>Tables SKU 逐一審查，停售虧損品項</h3><p>成本審計 + 篩選下架。不是整個品類，是品項層級。</p></div><div class="action-roi">+$3,256/yr</div></div>
   <div class="action-item"><span class="ap ap1">P1</span><div class="action-body"><h3>對 At Risk 前 51 人發起喚回</h3><p>歷史利潤 $22,300，平均利潤率 17.3%。折扣上限設 15%，距臨界點還有 4.9pp 緩衝。</p></div><div class="action-roi">預估 +$10K</div></div>
 
   <div class="action-tier">P2 · 第 7–10 週 · 系統性改善</div>
+  <p style="font-size:14px;color:var(--text3);margin-bottom:0.5rem;max-width:var(--content);">根據折扣診斷和地區根因——業務行為由考核指標驅動，沒有即時利潤回饋是問題的制度根源，KPI 改變才能從根本改變行為。</p>
   <div class="action-item"><span class="ap ap2">P2</span><div class="action-body"><h3>報價工具加入即時利潤率顯示</h3><p>讓業務在報價的當下就看到自己在做虧本的單</p></div><div class="action-roi">+$11,575/yr</div></div>
   <div class="action-item"><span class="ap ap2">P2</span><div class="action-body"><h3>銷售 KPI 加入毛利考核（目標 ≥30%）</h3><p>先在 Central 試點，確認有效後全國推廣。業務只優化被考核的指標——改考核就能改行為。</p></div><div class="action-roi">+$16,205/yr</div></div>
 
